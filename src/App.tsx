@@ -9,8 +9,6 @@ import {
   LayoutDashboard,
   Bell,
   RefreshCw,
-  ExternalLink,
-  ShieldCheck,
   Sun,
   Moon,
   Menu,
@@ -72,7 +70,7 @@ export default function App() {
 
     return {
       ...site,
-      status: isOffline ? 'offline' : site.status
+      status: (isOffline ? 'offline' : site.status) as SiteStatus['status']
     };
   }, [sites, selectedSiteId]);
 
@@ -103,7 +101,7 @@ export default function App() {
     setIsRefreshing(true);
     fetchSites().finally(() => setTimeout(() => setIsRefreshing(false), 800));
   };
-  //junk
+
   return (
     <div className="flex h-screen bg-[var(--bg-main)] text-[var(--text-primary)] font-sans selection:bg-emerald-500/30 transition-colors duration-300 overflow-hidden">
       <Sidebar
@@ -191,91 +189,110 @@ export default function App() {
               <RefreshCw className="animate-spin text-emerald-500" size={32} />
             </div>
           ) : (
-            <div className="max-w-7xl mx-auto space-y-6 lg:space-y-8">
-
-
-              {/* Main Grid: Sensor Cards + Alerts */}
-              <div className="grid grid-cols-12 gap-6">
+            <div className="max-w-7xl mx-auto">
+              <div className="grid grid-cols-12 gap-6 relative">
                 {/* Sensor Cards */}
-                <div className="col-span-12 lg:col-span-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <AnimatePresence mode="wait">
-                    {/* Temperature — full width */}
-                    {selectedSite.sensors?.temperature && (
-                      <motion.div
-                        key={`${selectedSiteId}-temp`}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        transition={{ duration: 0.3 }}
-                        className="col-span-1 md:col-span-2"
-                      >
-                        <SensorCard
-                          type="temperature"
-                          current={selectedSite.sensors.temperature.current}
-                          unit={selectedSite.sensors.temperature.unit}
-                          history={selectedSite.sensors.temperature.history}
-                          threshold={selectedSite.sensors.temperature.threshold}
-                        />
-                      </motion.div>
-                    )}
+                <div className={cn(
+                  "col-span-12 transition-all duration-500",
+                  showAlerts ? "lg:col-span-8" : "lg:col-span-12"
+                )}>
+                  <div className={cn(
+                    "grid grid-cols-1 md:grid-cols-2 gap-6 transition-all duration-500",
+                    !showAlerts && "lg:grid-cols-3"
+                  )}>
+                    <AnimatePresence mode="wait">
+                      {/* Temperature */}
+                      {selectedSite.sensors?.temperature && (
+                        <motion.div
+                          key={`${selectedSiteId}-temp`}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -20 }}
+                          className={cn(
+                            "col-span-1 md:col-span-2 transition-all duration-500",
+                            !showAlerts && "lg:col-span-1"
+                          )}
+                        >
+                          <SensorCard
+                            type="temperature"
+                            current={selectedSite.sensors.temperature.current}
+                            unit={selectedSite.sensors.temperature.unit}
+                            history={selectedSite.sensors.temperature.history}
+                            threshold={selectedSite.sensors.temperature.threshold}
+                          />
+                        </motion.div>
+                      )}
 
-                    {/* Humidity */}
-                    {selectedSite.sensors?.humidity && (
-                      <motion.div
-                        key={`${selectedSiteId}-hum`}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        transition={{ duration: 0.3, delay: 0.1 }}
-                        className="col-span-1"
-                      >
-                        <SensorCard
-                          type="humidity"
-                          current={selectedSite.sensors.humidity.current}
-                          unit={selectedSite.sensors.humidity.unit}
-                          history={selectedSite.sensors.humidity.history}
-                          threshold={selectedSite.sensors.humidity.threshold}
-                        />
-                      </motion.div>
-                    )}
+                      {/* Humidity */}
+                      {selectedSite.sensors?.humidity && (
+                        <motion.div
+                          key={`${selectedSiteId}-hum`}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -20 }}
+                          transition={{ delay: 0.1 }}
+                          className="col-span-1"
+                        >
+                          <SensorCard
+                            type="humidity"
+                            current={selectedSite.sensors.humidity.current}
+                            unit={selectedSite.sensors.humidity.unit}
+                            history={selectedSite.sensors.humidity.history}
+                            threshold={selectedSite.sensors.humidity.threshold}
+                          />
+                        </motion.div>
+                      )}
 
-                    {/* Smoke */}
-                    {selectedSite.sensors?.smoke && (
-                      <motion.div
-                        key={`${selectedSiteId}-smoke`}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        transition={{ duration: 0.3, delay: 0.2 }}
-                        className="col-span-1"
-                      >
-                        <SensorCard
-                          type="smoke"
-                          current={selectedSite.sensors.smoke.current}
-                          unit={selectedSite.sensors.smoke.unit}
-                          history={selectedSite.sensors.smoke.history}
-                          threshold={selectedSite.sensors.smoke.threshold}
-                        />
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                      {/* Smoke */}
+                      {selectedSite.sensors?.smoke && (
+                        <motion.div
+                          key={`${selectedSiteId}-smoke`}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -20 }}
+                          transition={{ delay: 0.2 }}
+                          className="col-span-1"
+                        >
+                          <SensorCard
+                            type="smoke"
+                            current={selectedSite.sensors.smoke.current}
+                            unit={selectedSite.sensors.smoke.unit}
+                            history={selectedSite.sensors.smoke.history}
+                            threshold={selectedSite.sensors.smoke.threshold}
+                          />
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
                 </div>
 
-                {/* Alerts Panel */}
+                {/* Alerts Panel Overlay (Mobile) / Sidebar (Desktop) */}
                 <AnimatePresence>
-                  {(showAlerts || alerts.length > 0) && (
-                    <motion.div
-                      initial={{ opacity: 0, x: 20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: 20 }}
-                      className="col-span-12 lg:col-span-4 h-[600px]"
-                    >
-                      <AlertPanel alerts={alerts} />
-                    </motion.div>
+                  {showAlerts && (
+                    <>
+                      {/* Backdrop for mobile */}
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={() => setShowAlerts(false)}
+                        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[55] lg:hidden"
+                      />
+                      <motion.div
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: 20 }}
+                        className={cn(
+                          "transition-all duration-500 z-[60]",
+                          "fixed top-20 right-4 left-4 bottom-4 lg:relative lg:top-0 lg:left-0 lg:right-0 lg:bottom-0 lg:col-span-4 lg:z-auto lg:h-[700px]"
+                        )}
+                      >
+                        <AlertPanel alerts={alerts} />
+                      </motion.div>
+                    </>
                   )}
                 </AnimatePresence>
               </div>
-
             </div>
           )}
         </div>
