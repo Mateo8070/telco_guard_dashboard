@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { MOCK_SITES, API_BASE_URL } from './constants';
 import { SiteStatus, Alert, SensorType } from './types';
+import { cn } from './lib/utils';
 import { Sidebar } from './components/Sidebar';
 import { SensorCard } from './components/SensorCard';
 import { AlertPanel } from './components/AlertPanel';
@@ -25,6 +26,7 @@ export default function App() {
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [showAlerts, setShowAlerts] = useState(false);
 
   const fetchSites = async () => {
     try {
@@ -62,10 +64,17 @@ export default function App() {
 
   const toggleTheme = () => setTheme(prev => prev === 'light' ? 'dark' : 'light');
 
-  const selectedSite = useMemo(() =>
-    sites.find(s => s.id === selectedSiteId) || sites[0] || MOCK_SITES[0],
-    [sites, selectedSiteId]
-  );
+  const selectedSite = useMemo(() => {
+    const site = sites.find(s => s.id === selectedSiteId) || sites[0] || MOCK_SITES[0];
+
+    // Auto-offline: if lastUpdate is > 5 mins ago, override status
+    const isOffline = (Date.now() - site.lastUpdate) > 5 * 60 * 1000;
+
+    return {
+      ...site,
+      status: isOffline ? 'offline' : site.status
+    };
+  }, [sites, selectedSiteId]);
 
   const alerts = useMemo(() => {
     const allAlerts: Alert[] = [];
@@ -149,7 +158,14 @@ export default function App() {
             >
               <RefreshCw size={18} />
             </button>
-            <button className="p-2 rounded-full hover:bg-[var(--border-subtle)] text-[var(--text-secondary)] relative" title="Alerts">
+            <button
+              onClick={() => setShowAlerts(!showAlerts)}
+              className={cn(
+                "p-2 rounded-full hover:bg-[var(--border-subtle)] transition-all relative",
+                showAlerts ? "bg-emerald-500/10 text-emerald-500" : "text-[var(--text-secondary)]"
+              )}
+              title="Alerts"
+            >
               <Bell size={18} />
               {alerts.length > 0 && (
                 <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-[var(--bg-header)]" />
@@ -176,21 +192,11 @@ export default function App() {
                     </h2>
                     <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${selectedSite.status === 'online' ? 'bg-emerald-500/10 text-emerald-500' :
                       selectedSite.status === 'warning' ? 'bg-amber-500/10  text-amber-500' :
-                        'bg-red-500/10    text-red-500'
+                        selectedSite.status === 'critical' ? 'bg-red-500/10 text-red-500' :
+                          'bg-[var(--text-muted)]/10 text-[var(--text-muted)]'
                       }`}>
                       {selectedSite.status}
                     </span>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[var(--text-secondary)] text-xs sm:text-sm">
-                    <div className="flex items-center gap-1.5">
-                      <ShieldCheck size={14} className="text-emerald-500" />
-                      <span>Secure Connection</span>
-                    </div>
-                    <div className="hidden xs:block w-1 h-1 rounded-full bg-[var(--border-subtle)]" />
-                    <div className="flex items-center gap-1.5">
-                      <ExternalLink size={14} />
-                      <span>{selectedSite.location}</span>
-                    </div>
                   </div>
                 </div>
               </div>
@@ -263,9 +269,18 @@ export default function App() {
                 </div>
 
                 {/* Alerts Panel */}
-                <div className="col-span-12 lg:col-span-4 h-[600px]">
-                  <AlertPanel alerts={alerts} />
-                </div>
+                <AnimatePresence>
+                  {(showAlerts || alerts.length > 0) && (
+                    <motion.div
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 20 }}
+                      className="col-span-12 lg:col-span-4 h-[600px]"
+                    >
+                      <AlertPanel alerts={alerts} />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
 
             </div>

@@ -85,10 +85,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 </h3>
                 <div className={cn(
                   "w-2 h-2 rounded-full",
-                  site.status === 'online' && "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]",
-                  site.status === 'warning' && "bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]",
-                  site.status === 'critical' && "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)] animate-pulse",
-                  site.status === 'offline' && "bg-[var(--text-muted)] opacity-20"
+                  (() => {
+                    const isOffline = (Date.now() - site.lastUpdate) > 5 * 60 * 1000;
+                    const status = isOffline ? 'offline' : site.status;
+                    if (status === 'online') return "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]";
+                    if (status === 'warning') return "bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]";
+                    if (status === 'critical') return "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)] animate-pulse";
+                    return "bg-[var(--text-muted)] opacity-50";
+                  })()
                 )} />
               </div>
 
