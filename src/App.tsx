@@ -18,7 +18,9 @@ import { motion, AnimatePresence } from 'motion/react';
 
 export default function App() {
   const [sites, setSites] = useState<SiteStatus[]>([]);
-  const [selectedSiteId, setSelectedSiteId] = useState<string>('');
+  const [selectedSiteId, setSelectedSiteId] = useState<string>(() => {
+    return localStorage.getItem('telcoguard_selected_site_id') || '';
+  });
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -29,8 +31,12 @@ export default function App() {
       const response = await fetch(`${API_BASE_URL}/api/sites`);
       const data = await response.json();
       setSites(data);
-      if (data.length > 0 && !selectedSiteId) {
-        setSelectedSiteId(data[0].id);
+
+      // If no site is selected yet, pick the first one
+      if (data.length > 0 && !localStorage.getItem('telcoguard_selected_site_id')) {
+        const firstId = data[0].id;
+        setSelectedSiteId(firstId);
+        localStorage.setItem('telcoguard_selected_site_id', firstId);
       }
     } catch (error) {
       console.error('Failed to fetch sites:', error);
@@ -85,13 +91,17 @@ export default function App() {
     setIsRefreshing(true);
     fetchSites().finally(() => setTimeout(() => setIsRefreshing(false), 800));
   };
-//junk
+  //junk
   return (
     <div className="flex h-screen bg-[var(--bg-main)] text-[var(--text-primary)] font-sans selection:bg-emerald-500/30 transition-colors duration-300 overflow-hidden">
       <Sidebar
         sites={sites}
         selectedSiteId={selectedSiteId}
-        onSelectSite={(id) => { setSelectedSiteId(id); setIsSidebarOpen(false); }}
+        onSelectSite={(id) => {
+          setSelectedSiteId(id);
+          localStorage.setItem('telcoguard_selected_site_id', id);
+          setIsSidebarOpen(false);
+        }}
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
       />
@@ -162,8 +172,8 @@ export default function App() {
                       {selectedSite.name}
                     </h2>
                     <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${selectedSite.status === 'online' ? 'bg-emerald-500/10 text-emerald-500' :
-                        selectedSite.status === 'warning' ? 'bg-amber-500/10  text-amber-500' :
-                          'bg-red-500/10    text-red-500'
+                      selectedSite.status === 'warning' ? 'bg-amber-500/10  text-amber-500' :
+                        'bg-red-500/10    text-red-500'
                       }`}>
                       {selectedSite.status}
                     </span>

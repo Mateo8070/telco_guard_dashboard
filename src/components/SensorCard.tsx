@@ -109,8 +109,8 @@ export const SensorCard: React.FC<SensorCardProps> = ({
       </div>
 
       <div className="h-48 w-full mt-2 -ml-4">
-        <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={history} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+        <ResponsiveContainer width="100%" height="100%" style={{ outline: 'none' }}>
+          <AreaChart data={history} margin={{ top: 10, right: 10, left: 0, bottom: 0 }} style={{ outline: 'none' }}>
             <defs>
               <linearGradient id={`gradient-${type}`} x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor={isAlert ? '#ef4444' : config.color} stopOpacity={0.3} />
