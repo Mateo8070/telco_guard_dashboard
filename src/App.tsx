@@ -30,7 +30,10 @@ export default function App() {
     try {
       const response = await fetch(`${API_BASE_URL}/api/sites`);
       const data = await response.json();
-      setSites(data);
+
+      // Sort sites by ID (e.g., site-001, site-002)
+      const sortedData = (data as SiteStatus[]).sort((a, b) => a.id.localeCompare(b.id));
+      setSites(sortedData);
 
       // If no site is selected yet, pick the first one
       if (data.length > 0 && !localStorage.getItem('telcoguard_selected_site_id')) {
