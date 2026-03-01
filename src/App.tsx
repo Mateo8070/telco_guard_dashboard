@@ -128,18 +128,28 @@ export default function App() {
             >
               <Menu size={20} />
             </button>
-            <div className="hidden sm:flex items-center gap-2 text-[var(--text-secondary)]">
-              <LayoutDashboard size={18} />
-              <span className="text-sm font-medium">Dashboard</span>
-            </div>
-            <div className="hidden sm:block h-4 w-px bg-[var(--border-subtle)]" />
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold text-[var(--text-primary)] truncate max-w-[140px] sm:max-w-none">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-0 sm:gap-3 min-w-0">
+              <span className="text-sm sm:text-base font-bold text-[var(--text-primary)] truncate leading-tight">
                 {selectedSite.name}
               </span>
-              <span className="hidden xs:inline text-[10px] font-mono text-[var(--text-muted)] uppercase tracking-widest">
-                {selectedSite.id}
-              </span>
+              <div className="flex items-center gap-2">
+                <div className={cn(
+                  "w-1.5 h-1.5 rounded-full shrink-0",
+                  selectedSite.status === 'online' ? 'bg-emerald-500 shadow-[0_0_4px_rgba(16,185,129,0.5)]' :
+                    selectedSite.status === 'warning' ? 'bg-amber-500' :
+                      selectedSite.status === 'critical' ? 'bg-red-500 animate-pulse' :
+                        'bg-[var(--text-muted)] opacity-50'
+                )} />
+                <span className={cn(
+                  "text-[9px] sm:text-[10px] font-bold uppercase tracking-widest leading-none",
+                  selectedSite.status === 'online' ? 'text-emerald-500' :
+                    selectedSite.status === 'warning' ? 'text-amber-500' :
+                      selectedSite.status === 'critical' ? 'text-red-500' :
+                        'text-[var(--text-muted)]'
+                )}>
+                  {selectedSite.status}
+                </span>
+              </div>
             </div>
           </div>
 
@@ -183,23 +193,6 @@ export default function App() {
           ) : (
             <div className="max-w-7xl mx-auto space-y-6 lg:space-y-8">
 
-              {/* Site Header */}
-              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4">
-                <div>
-                  <div className="flex items-center gap-3 mb-2">
-                    <h2 className="text-2xl lg:text-3xl font-bold tracking-tight text-[var(--text-primary)]">
-                      {selectedSite.name}
-                    </h2>
-                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${selectedSite.status === 'online' ? 'bg-emerald-500/10 text-emerald-500' :
-                      selectedSite.status === 'warning' ? 'bg-amber-500/10  text-amber-500' :
-                        selectedSite.status === 'critical' ? 'bg-red-500/10 text-red-500' :
-                          'bg-[var(--text-muted)]/10 text-[var(--text-muted)]'
-                      }`}>
-                      {selectedSite.status}
-                    </span>
-                  </div>
-                </div>
-              </div>
 
               {/* Main Grid: Sensor Cards + Alerts */}
               <div className="grid grid-cols-12 gap-6">
