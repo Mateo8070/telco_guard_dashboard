@@ -11,6 +11,7 @@ interface SidebarProps {
   onSelectSite: (id: string) => void;
   isOpen: boolean;
   onClose: () => void;
+  theme: 'light' | 'dark';
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -18,8 +19,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
   selectedSiteId,
   onSelectSite,
   isOpen,
-  onClose
+  onClose,
+  theme
 }) => {
+  const lightFavicon = "https://uxwing.com/wp-content/themes/uxwing/download/internet-network-technology/signal-tower-icon.svg";
+  const darkFavicon = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQgxqMcLnCsAYeb5yMsDZwS_A6Nyf5lrQq1IA&s";
   return (
     <>
       {/* Mobile Overlay */}
@@ -41,8 +45,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
       )}>
         <div className="p-6 border-b border-[var(--border-subtle)] flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center">
-              <Activity className="text-black" size={20} />
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden">
+              <img
+                src={theme === 'dark' ? darkFavicon : lightFavicon}
+                alt="Logo"
+                className="w-full h-full object-contain"
+              />
             </div>
             <h1 className="text-xl font-bold tracking-tight text-[var(--text-primary)]">TelcoGuard</h1>
           </div>
@@ -121,14 +129,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
           ))}
         </div>
 
-        <div className="p-6 border-t border-[var(--border-subtle)] bg-[var(--border-subtle)]/30">
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-[10px] font-mono text-[var(--text-muted)] uppercase">System Health</span>
-            <span className="text-[10px] font-mono text-emerald-500 uppercase">Stable</span>
-          </div>
-          <div className="h-1 bg-[var(--border-subtle)] rounded-full overflow-hidden">
-            <div className="h-full bg-emerald-500 w-[98%]" />
-          </div>
+        <div className="p-4 border-t border-[var(--border-subtle)] bg-[var(--border-subtle)]/30 flex justify-center">
+          <span className="text-[10px] font-mono text-[var(--text-muted)] uppercase tracking-widest opacity-40">
+            TelcoGuard V2
+          </span>
         </div>
       </aside>
     </>

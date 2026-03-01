@@ -113,6 +113,7 @@ export default function App() {
           setIsSidebarOpen(false);
         }}
         isOpen={isSidebarOpen}
+        theme={theme}
         onClose={() => setIsSidebarOpen(false)}
       />
 
@@ -287,7 +288,7 @@ export default function App() {
                           "fixed top-20 right-4 left-4 bottom-4 lg:relative lg:top-0 lg:left-0 lg:right-0 lg:bottom-0 lg:col-span-4 lg:z-auto lg:h-[700px]"
                         )}
                       >
-                        <AlertPanel alerts={alerts} />
+                        <AlertPanel alerts={alerts} onClose={() => setShowAlerts(false)} />
                       </motion.div>
                     </>
                   )}

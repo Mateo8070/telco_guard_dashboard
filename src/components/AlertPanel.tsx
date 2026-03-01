@@ -1,14 +1,15 @@
 import React from 'react';
 import { Alert } from '../types';
-import { AlertCircle, AlertTriangle, CheckCircle2, Clock } from 'lucide-react';
+import { AlertCircle, AlertTriangle, CheckCircle2, Clock, X } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { format } from 'date-fns';
 
 interface AlertPanelProps {
   alerts: Alert[];
+  onClose?: () => void;
 }
 
-export const AlertPanel: React.FC<AlertPanelProps> = ({ alerts }) => {
+export const AlertPanel: React.FC<AlertPanelProps> = ({ alerts, onClose }) => {
   return (
     <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl overflow-hidden flex flex-col h-full shadow-sm transition-colors duration-300">
       <div className="p-4 border-b border-[var(--border-subtle)] flex justify-between items-center bg-[var(--bg-header)]/50">
@@ -16,11 +17,22 @@ export const AlertPanel: React.FC<AlertPanelProps> = ({ alerts }) => {
           <AlertCircle size={16} className="text-red-500" />
           Active Alerts
         </h2>
-        <span className="text-[10px] font-mono bg-red-500/10 text-red-500 px-2 py-0.5 rounded">
-          {alerts.filter(a => !a.resolved).length} Unresolved
-        </span>
+        <div className="flex items-center gap-3">
+          <span className="text-[10px] font-mono bg-red-500/10 text-red-500 px-2 py-0.5 rounded">
+            {alerts.filter(a => !a.resolved).length} Unresolved
+          </span>
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="p-1.5 hover:bg-[var(--border-subtle)] rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors lg:hidden"
+              title="Close Panel"
+            >
+              <X size={16} />
+            </button>
+          )}
+        </div>
       </div>
-      
+
       <div className="flex-1 overflow-y-auto">
         {alerts.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center p-8 text-center">
