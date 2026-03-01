@@ -27,7 +27,7 @@ const sensorConfig = {
   temperature: {
     label: 'Temperature',
     icon: Thermometer,
-    color: '#ef4444',
+    color: '#f97316',
     domain: [0, 60],
   },
   humidity: {
