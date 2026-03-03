@@ -52,7 +52,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 className="w-full h-full object-contain"
               />
             </div>
-            <h1 className="text-xl font-bold tracking-tight text-[var(--text-primary)]">TelcoGuard</h1>
+            <h1 className="text-xl font-bold tracking-tight text-[var(--text-primary)]">TERMS</h1>
           </div>
           <button
             onClick={onClose}

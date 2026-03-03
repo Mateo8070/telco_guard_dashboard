@@ -1,6 +1,6 @@
 import { SiteStatus } from './types';
 
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://telco-guard-backend.vercel.app';
 
 const generateHistory = (base: number, variance: number, type: 'temperature' | 'humidity' | 'smoke', count: number = 24) => {
   const now = Date.now();
