@@ -102,10 +102,10 @@ export const MOCK_SITES: SiteStatus[] = [
         threshold: 80,
       },
       smoke: {
-        current: 65,
-        unit: 'ppm',
-        history: generateHistory(55, 15, 'smoke'),
-        threshold: 50,
+        current: 1, // ALARM ACTIVE
+        unit: 'digital',
+        history: [...generateHistory(0, 0, 'smoke', 20), { timestamp: Date.now() - 3600000, value: 1 }, { timestamp: Date.now(), value: 1 }],
+        threshold: 0.5,
       },
     },
   },

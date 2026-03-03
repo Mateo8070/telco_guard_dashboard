@@ -26,6 +26,9 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [showAlerts, setShowAlerts] = useState(false);
 
+  const [hasSmokeAlert, setHasSmokeAlert] = useState(false);
+  const audioRef = React.useRef<HTMLAudioElement | null>(null);
+
   const fetchSites = async () => {
     try {
       const response = await fetch(`${API_BASE_URL}/api/sites`);
@@ -34,6 +37,10 @@ export default function App() {
       // Sort sites by ID (e.g., site-001, site-002)
       const sortedData = (data as SiteStatus[]).sort((a, b) => a.id.localeCompare(b.id));
       setSites(sortedData);
+
+      // Check for smoke alerts
+      const smokeAlertActive = sortedData.some(site => site.sensors.smoke?.current === 1);
+      setHasSmokeAlert(smokeAlertActive);
 
       // If no site is selected yet, pick the first one
       if (data.length > 0 && !localStorage.getItem('telcoguard_selected_site_id')) {
@@ -60,6 +67,21 @@ export default function App() {
     root.classList.add(theme);
   }, [theme]);
 
+  useEffect(() => {
+    if (hasSmokeAlert) {
+      if (!audioRef.current) {
+        audioRef.current = new Audio('https://assets.mixkit.co/active_storage/sfx/2569/2569-preview.mp3'); // Police siren placeholder
+        audioRef.current.loop = true;
+      }
+      audioRef.current.play().catch(e => console.log("Audio play blocked by browser policy. Interaction required."));
+    } else {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
+    }
+  }, [hasSmokeAlert]);
+
   const toggleTheme = () => setTheme(prev => prev === 'light' ? 'dark' : 'light');
 
   const selectedSite = useMemo(() => {
@@ -80,14 +102,19 @@ export default function App() {
 
     sites.forEach(site => {
       (Object.entries(site.sensors) as [SensorType, any][]).forEach(([type, sensor]) => {
-        if (sensor.current > sensor.threshold) {
+        // Handle smoke specifically for alerts (binary 1 means alert)
+        const isAlert = type === 'smoke' ? sensor.current === 1 : sensor.current > sensor.threshold;
+
+        if (isAlert) {
           allAlerts.push({
             id: `alert-${site.id}-${type}`,
             siteId: site.id,
             siteName: site.name,
             type,
-            severity: sensor.current > sensor.threshold * 1.2 ? 'critical' : 'warning',
-            message: `${type.charAt(0).toUpperCase() + type.slice(1)} at ${site.name} is ${sensor.current}${sensor.unit} — threshold: ${sensor.threshold}${sensor.unit}`,
+            severity: (type === 'smoke' || sensor.current > sensor.threshold * 1.2) ? 'critical' : 'warning',
+            message: type === 'smoke'
+              ? `SMOKE DETECTED at ${site.name}!`
+              : `${type.charAt(0).toUpperCase() + type.slice(1)} at ${site.name} is ${sensor.current}${sensor.unit} — threshold: ${sensor.threshold}${sensor.unit}`,
             timestamp: Date.now() - Math.random() * 3600000,
             resolved: false,
           });
