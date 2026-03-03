@@ -5,6 +5,7 @@ import { cn } from './lib/utils';
 import { Sidebar } from './components/Sidebar';
 import { SensorCard } from './components/SensorCard';
 import { AlertPanel } from './components/AlertPanel';
+import { AlarmBanner } from './components/AlarmBanner';
 import {
   LayoutDashboard,
   Bell,
@@ -12,8 +13,12 @@ import {
   Sun,
   Moon,
   Menu,
+  Settings,
+  X,
+  Shield,
+  Flame,
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function App() {
   const [sites, setSites] = useState<SiteStatus[]>([]);
@@ -21,12 +26,15 @@ export default function App() {
     return localStorage.getItem('telcoguard_selected_site_id') || '';
   });
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
+  const [theme, setTheme] = useState<'light' | 'dark'>(() =>
+    (localStorage.getItem('telcoguard_theme') as 'light' | 'dark') || 'dark'
+  );
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showAlerts, setShowAlerts] = useState(false);
 
   const [hasSmokeAlert, setHasSmokeAlert] = useState(false);
+  const [isSilenced, setIsSilenced] = useState(false);
   const audioRef = React.useRef<HTMLAudioElement | null>(null);
 
   const fetchSites = async () => {
@@ -40,6 +48,12 @@ export default function App() {
 
       // Check for smoke alerts
       const smokeAlertActive = sortedData.some(site => site.sensors.smoke?.current === 1);
+
+      // Reset silence if alert clears
+      if (!smokeAlertActive) {
+        setIsSilenced(false);
+      }
+
       setHasSmokeAlert(smokeAlertActive);
 
       // If no site is selected yet, pick the first one
@@ -65,10 +79,11 @@ export default function App() {
     const root = window.document.documentElement;
     root.classList.remove('light', 'dark');
     root.classList.add(theme);
+    localStorage.setItem('telcoguard_theme', theme);
   }, [theme]);
 
   useEffect(() => {
-    if (hasSmokeAlert) {
+    if (hasSmokeAlert && !isSilenced) {
       if (!audioRef.current) {
         audioRef.current = new Audio('https://assets.mixkit.co/active_storage/sfx/2569/2569-preview.mp3'); // Police siren placeholder
         audioRef.current.loop = true;
@@ -80,12 +95,12 @@ export default function App() {
         audioRef.current.currentTime = 0;
       }
     }
-  }, [hasSmokeAlert]);
+  }, [hasSmokeAlert, isSilenced]);
 
   const toggleTheme = () => setTheme(prev => prev === 'light' ? 'dark' : 'light');
 
   const selectedSite = useMemo(() => {
-    const site = sites.find(s => s.id === selectedSiteId) || sites[0] || MOCK_SITES[0];
+    const site = sites.find(s => s.id === selectedSiteId) || sites[0];
 
     // Auto-offline: if lastUpdate is > 5 mins ago, override status
     const isOffline = (Date.now() - site.lastUpdate) > 5 * 60 * 1000;
@@ -95,6 +110,10 @@ export default function App() {
       status: (isOffline ? 'offline' : site.status) as SiteStatus['status']
     };
   }, [sites, selectedSiteId]);
+
+  const alertingSite = useMemo(() => {
+    return sites.find(site => site.sensors.smoke?.current === 1)?.name;
+  }, [sites]);
 
   const alerts = useMemo(() => {
     const allAlerts: Alert[] = [];
@@ -129,8 +148,22 @@ export default function App() {
     fetchSites().finally(() => setTimeout(() => setIsRefreshing(false), 800));
   };
 
+  if (loading && sites.length === 0) {
+    return (
+      <div className="min-h-screen bg-[var(--bg-dashboard)] flex items-center justify-center">
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+          className="text-emerald-500"
+        >
+          <RefreshCw className="w-8 h-8" />
+        </motion.div>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex h-screen bg-[var(--bg-main)] text-[var(--text-primary)] font-sans selection:bg-emerald-500/30 transition-colors duration-300 overflow-hidden">
+    <div className="flex h-screen bg-[var(--bg-dashboard)] text-[var(--text-primary)] font-sans selection:bg-emerald-500/30 transition-colors duration-300 overflow-hidden">
       <Sidebar
         sites={sites}
         selectedSiteId={selectedSiteId}
@@ -145,6 +178,13 @@ export default function App() {
       />
 
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
+        <AlarmBanner
+          active={hasSmokeAlert}
+          isSilenced={isSilenced}
+          onSilence={() => setIsSilenced(true)}
+          siteName={alertingSite}
+        />
+
         {/* Header */}
         <header className="h-16 border-b border-[var(--border-subtle)] bg-[var(--bg-header)] flex items-center justify-between px-4 lg:px-8 shrink-0 transition-colors duration-300">
           <div className="flex items-center gap-3 lg:gap-6">
@@ -189,7 +229,10 @@ export default function App() {
             </button>
             <button
               onClick={handleRefresh}
-              className={`p-2 rounded-full hover:bg-[var(--border-subtle)] text-[var(--text-secondary)] transition-colors ${isRefreshing ? 'animate-spin text-emerald-500' : ''}`}
+              className={cn(
+                "p-2 rounded-full hover:bg-[var(--border-subtle)] text-[var(--text-secondary)] transition-colors",
+                isRefreshing && "animate-spin text-emerald-500"
+              )}
               title="Refresh data"
             >
               <RefreshCw size={18} />
