@@ -100,14 +100,15 @@ export default function App() {
   const toggleTheme = () => setTheme(prev => prev === 'light' ? 'dark' : 'light');
 
   const selectedSite = useMemo(() => {
-    const site = sites.find(s => s.id === selectedSiteId) || sites[0];
+    const site = sites.find(s => s.id === selectedSiteId) || sites[0] || MOCK_SITES[0];
 
     // Auto-offline: if lastUpdate is > 5 mins ago, override status
-    const isOffline = (Date.now() - site.lastUpdate) > 5 * 60 * 1000;
+    // Add guard for site and site.lastUpdate
+    const isOffline = site && site.lastUpdate ? (Date.now() - site.lastUpdate) > 5 * 60 * 1000 : false;
 
     return {
       ...site,
-      status: (isOffline ? 'offline' : site.status) as SiteStatus['status']
+      status: (isOffline ? 'offline' : site?.status || 'offline') as SiteStatus['status']
     };
   }, [sites, selectedSiteId]);
 
